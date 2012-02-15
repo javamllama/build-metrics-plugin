@@ -1,0 +1,97 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+<l:layout title="${%Build Metrics Plugin}" permission="${it.requiredPermission}">
+  <l:side-panel>
+    <l:tasks>
+      <l:task icon="images/24x24/up.gif" href="${rootURL}/" title="${%Back to Dashboard}" />
+      <j:if test="${h.hasPermission(it,it.ADMINISTER)}">
+        <l:task icon="images/24x24/up.gif" href="${rootURL}/plugin/build-metrics" title="${%Back to Build Metrics}" />
+      </j:if>
+    </l:tasks>
+  </l:side-panel>
+  
+  <l:header>
+  </l:header>
+
+  <l:main-panel>
+    <h1>${searchCriteria.label}</h1>
+    <h2>Build Metrics:</h2>
+    	<j:choose>
+	  		<j:when test="${empty(buildStats)}">
+	  			<em>${%No jobs found.}</em>
+	  		</j:when>
+	  		<j:otherwise>
+	  		<table id="projectstatus" class="sortable pane bigtable">
+	        <tr style="border-top: 0px;">
+	  			<th>${%Job name}</th>
+	  			<th>${%# Successful}</th>
+          <th>${%# Failed}</th>
+          <th>${%# Unstable}</th>
+          <th>${%# Aborted}</th>
+          <th>${%# Not Built}</th>
+          <th>${%# Total Builds}</th>
+          <th>${%Failure Rate}</th>
+          </tr>
+			    <j:forEach var="stat" items="${buildStats.stats}">
+			    	<tr class="build-row">
+			    		<td class="pane"><a href="${rootURL}/job/${stat.jobName}/">${stat.jobName}</a></td>
+              <td class="pane">${stat.successes}</td>
+              <td class="pane">${stat.failures}</td>
+              <td class="pane">${stat.unstables}</td>
+              <td class="pane">${stat.aborts}</td>
+              <td class="pane">${stat.noBuilds}</td>
+              <td class="pane">${stat.totalBuilds}</td>
+              <td class="pane">${stat.failureRate}%</td>
+            </tr>
+		  		</j:forEach>
+  		  		<tr>
+              <th class="pane" style="font-weight:bold;">Total:</th>
+              <th class="pane" style="font-weight:bold;">${buildStats.successes}</th>
+              <th class="pane" style="font-weight:bold;">${buildStats.failures}</th>
+              <th class="pane" style="font-weight:bold;">${buildStats.unstables}</th>
+              <th class="pane" style="font-weight:bold;">${buildStats.aborts}</th>
+              <th class="pane" style="font-weight:bold;">${buildStats.noBuilds}</th>
+              <th class="pane" style="font-weight:bold;">${buildStats.totalBuilds}</th>
+              <th class="pane" style="font-weight:bold;">${buildStats.failureRate}%</th>
+            </tr>
+  		  	</table>
+    		</j:otherwise>
+    	</j:choose>
+    	
+    	<h2>Failed Builds:</h2>
+    	<j:choose>
+        <j:when test="${empty(buildStats)}">
+          <em>${%No Builds found.}</em>
+        </j:when>
+        <j:otherwise>
+          <table id="projectstatus" class="sortable pane bigtable">
+            <tr style="border-top: 0px;">
+              <th>${% Status}</th>
+              <th>${% Job name}</th>
+              <th>${% Build #}</th>
+              <th>${% Date}</th>
+              <th>${% Duration}</th>
+              <th>${% Node}</th>
+              <th>${% User}</th>
+              <th>${% Cause}</th>
+            </tr>
+            <j:forEach var="build" items="${failedBuilds}">
+              <tr class="build-row">
+                <td class="pane">${build.status}</td>
+                <td class="pane"><a href="${rootURL}/job/${build.jobName}/">${build.jobName}</a></td>
+                <td class="pane">
+                  <a href="${rootURL}/job/${build.jobName}/${build.buildNumber}/console"><img src="${rootURL}/plugin/global-build-stats/icons/terminal.gif" /></a>
+                  <a href="${rootURL}/job/${build.jobName}/${build.buildNumber}/">#${build.buildNumber}</a>
+                </td>
+                <td class="pane"><a href="${rootURL}/job/${build.jobName}/${build.buildNumber}/">${build.buildDateString}</a></td>
+                <td class="pane">${build.duration}</td>
+                <td class="pane">${build.nodeName}</td>
+                <td class="pane">${build.userName}</td>
+                <td class="pane">${build.description}</td>
+              </tr>
+           </j:forEach>
+        </table>
+      </j:otherwise>
+    </j:choose>
+  </l:main-panel>
+</l:layout>
+</j:jelly>

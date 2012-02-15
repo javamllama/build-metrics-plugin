@@ -1,0 +1,139 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+<l:layout title="${%Build Metrics Plugin}" permission="${it.requiredPermission}">
+  
+  	<j:invoke var="FIELD_FILTER_ALL" on="${it}" method="getFieldFilterALL" />
+	<j:invoke var="FIELD_FILTER_REGEX" on="${it}" method="getFieldFilterRegex" />
+	<j:set var="LAUNCHER_SYSTEM_REGEX" value="${FIELD_FILTER_REGEX}(^SYSTEM$$)"/>
+	<j:set var="NODE_MASTER_REGEX" value="${FIELD_FILTER_REGEX}(^master$$)"/>
+    <!-- For an unknown reason, j:invokeStatic doesn't work here ! :( -->
+    <j:invoke var="escapedJobFilter" on="${it}" method="escapeAntiSlashes">
+    	<j:arg type="java.lang.String" value="" />
+    </j:invoke>
+    <!-- For an unknown reason, j:invokeStatic doesn't work here ! :( -->
+    <j:invoke var="escapedNodeFilter" on="${it}" method="escapeAntiSlashes">
+    	<j:arg type="java.lang.String" value="" />
+    </j:invoke>
+    <!-- For an unknown reason, j:invokeStatic doesn't work here ! :( -->
+    <j:invoke var="escapedLauncherFilter" on="${it}" method="escapeAntiSlashes">
+    	<j:arg type="java.lang.String" value="" />
+    </j:invoke>
+  
+  	<l:header>
+    <script src="${rootURL}/plugin/global-build-stats/scripts/global-build-stats/standardFunctions.js"></script>
+    <script>var startDate = ${searchCriteria.start}; var endDate = ${searchCriteria.end};</script>
+    <script type="text/javascript">
+      FIELD_FILTER_ALL = "${FIELD_FILTER_ALL}";
+      FIELD_FILTER_REGEX = "${FIELD_FILTER_REGEX}";
+      LAUNCHER_SYSTEM_REGEX = "${LAUNCHER_SYSTEM_REGEX}";
+      NODE_MASTER_REGEX = "${NODE_MASTER_REGEX}";
+          ESCAPED_JOB_FILTER = "${escapedJobFilter}";
+          ESCAPED_NODE_FILTER = "${escapedNodeFilter}";
+          ESCAPED_LAUNCHER_FILTER = "${escapedLauncherFilter}";
+    </script>
+    <script src="${rootURL}/plugin/global-build-stats/scripts/global-build-stats/buildHistory.js"></script>
+	</l:header>
+  
+  
+  <l:side-panel>
+    <l:tasks>
+      <l:task icon="images/24x24/up.gif" href="${rootURL}/" title="${%Back to Dashboard}" />
+    </l:tasks>
+  </l:side-panel>
+  
+  <l:main-panel>
+    <h1><img src="${rootURL}/plugin/build-metrics/icons/build-metrics.png" /> ${%Build Metrics Plugin} </h1>
+	    <hr />
+	    <strong>${%Search criteria}</strong><br/>
+	    <form name="searchBuildStat" action="getBuildStats" method="get" class="globalBuildStatsForm" id="searchBuildStat">
+	    <label for="label">Label for Search Results : </label>
+      <input type="text" id="searchBuild_label" name="label" size="20" value="Search Results"/><br/>
+      <label for="range">Show builds for the last : </label>
+	    <input type="text" id="searchBuild_range" name="range" size="5" value="2"/>
+	    <select id="searchBuild_rangeUnits" name="rangeUnits">
+	      <option>Days</option>
+	      <option selected="true">Weeks</option>
+        <option>Months</option>
+        <option>Years</option>
+	    </select>
+      <br/>
+	      ${%Filters} :
+	      <ul style="margin-top: 4px;">
+	      	<li>
+		      ${%Job filtering} : <input type="radio" id="searchBuild_jobFilteringType_ALL" checked="checked" name="jobFilteringType" value="${FIELD_FILTER_ALL}" onchange="fieldFilterTypeSelected(this.value, 'searchBuild_jobNameRegex', 'searchBuild_jobFilter');" />${%ALL Jobs}
+		      <input type="radio" id="searchBuild_jobFilteringType_REGEX" name="jobFilteringType" value="${FIELD_FILTER_REGEX}" onchange="fieldFilterTypeSelected(this.value, 'searchBuild_jobNameRegex', 'searchBuild_jobFilter');" />
+		      ${%Job name regex} :
+		      <input type="text" id="searchBuild_jobNameRegex" 
+		      		 disabled="true" name="jobNameRegex" size="20"
+		      		 onblur="$('searchBuild_jobFilter').value=FIELD_FILTER_REGEX+'('+this.value+')';" 
+		      />
+		      <input id="searchBuild_jobFilter" type="hidden" name="jobFilter" value="${escapedJobFilter}" />
+		    </li>
+		    <li>
+		      ${%Node filtering} : <input type="radio" id="searchBuild_nodeFilteringType_ALL" checked="checked" name="nodeFilteringType" value="${FIELD_FILTER_ALL}" onchange="fieldFilterTypeSelected(this.value, 'searchBuild_nodeNameRegex', 'searchBuild_nodeFilter');" />${%ALL Nodes}
+		      <input type="radio" id="searchBuild_nodeFilteringType_REGEXMASTER" name="nodeFilteringType" value="${NODE_MASTER_REGEX}" onchange="fieldFilterTypeSelected(this.value, 'searchBuild_nodeNameRegex', 'searchBuild_nodeFilter');" />
+		      ${%Master only} :
+		      <input type="radio" id="searchBuild_nodeFilteringType_REGEX" name="nodeFilteringType" value="${FIELD_FILTER_REGEX}" onchange="fieldFilterTypeSelected(this.value, 'searchBuild_nodeNameRegex', 'searchBuild_nodeFilter');" />
+		      ${%Node name regex} :
+		      <input type="text" id="searchBuild_nodeNameRegex" 
+		      		 disabled="true" name="nodeNameRegex" size="10"
+		      		 onblur="$('searchBuild_nodeFilter').value=FIELD_FILTER_REGEX+'('+this.value+')';" 
+		      />
+		      <input id="searchBuild_nodeFilter" type="hidden" name="nodeFilter" value="${escapedNodeFilter}" />
+	      	</li>
+		    <li>
+		      ${%Launcher filtering} : <input type="radio" id="searchBuild_launcherFilteringType_ALL" checked="checked" name="launcherFilteringType" value="${FIELD_FILTER_ALL}" onchange="fieldFilterTypeSelected(this.value, 'searchBuild_launcherNameRegex', 'searchBuild_launcherFilter');" />${%ALL Users}
+		      <input type="radio" id="searchBuild_launcherFilteringType_REGEXSYSTEM" name="launcherFilteringType" value="${LAUNCHER_SYSTEM_REGEX}" onchange="fieldFilterTypeSelected(this.value, 'searchBuild_launcherNameRegex', 'searchBuild_launcherFilter');" />
+		      ${%System only} :
+		      <input type="radio" id="searchBuild_launcherFilteringType_REGEX" name="launcherFilteringType" value="${FIELD_FILTER_REGEX}" onchange="fieldFilterTypeSelected(this.value, 'searchBuild_launcherNameRegex', 'searchBuild_launcherFilter');" />
+		      ${%Username regex} :
+		      <input type="text" id="searchBuild_launcherNameRegex" 
+		      		 disabled="true" name="launcherNameRegex" size="10"
+		      		 onblur="$('searchBuild_launcherFilter').value=FIELD_FILTER_REGEX+'('+this.value+')';" 
+		      />
+		      <input id="searchBuild_launcherFilter" type="hidden" name="launcherFilter" value="${escapedLauncherFilter}" />
+	      	</li>
+	      </ul>
+		  <script type="text/javascript"><![CDATA[
+		  if($('searchBuild_jobFilter').value.indexOf(FIELD_FILTER_REGEX) != -1){
+		  	  $('searchBuild_jobFilteringType_REGEX').checked = 'checked';
+		  	  initializeRegexField('searchBuild_jobNameRegex', ESCAPED_JOB_FILTER);
+		  	  $('searchBuild_jobFilteringType_REGEX').onchange();
+		  	  $('searchBuild_jobNameRegex').disabled = false;
+		  } else if(document.getElementById('searchBuild_jobFilter').value.indexOf(FIELD_FILTER_ALL) != -1){
+		  	  $('searchBuild_jobFilteringType_ALL').checked = 'checked';
+		  	  $('searchBuild_jobFilteringType_ALL').onchange();
+		  }
+		  if($('searchBuild_nodeFilter').value.indexOf(NODE_MASTER_REGEX) != -1){
+		  	  $('searchBuild_nodeFilteringType_REGEXMASTER').checked = 'checked';
+ 		 	  $('searchBuild_nodeFilteringType_REGEXMASTER').onchange();
+		  	  $('searchBuild_nodeNameRegex').disabled = true;
+		  } else if($('searchBuild_nodeFilter').value.indexOf(FIELD_FILTER_REGEX) != -1){
+		  	  $('searchBuild_nodeFilteringType_REGEX').checked = 'checked';
+		  	  initializeRegexField('searchBuild_nodeNameRegex', ESCAPED_NODE_FILTER);
+ 		 	  $('searchBuild_nodeFilteringType_REGEX').onchange();
+		  	  $('searchBuild_nodeNameRegex').disabled = false;
+		  } else if($('searchBuild_nodeFilter').value.indexOf(FIELD_FILTER_ALL) != -1){
+		  	  $('searchBuild_nodeFilteringType_ALL').checked = 'checked';
+		  	  $('searchBuild_nodeFilteringType_ALL').onchange();
+		  }
+		  if($('searchBuild_launcherFilter').value.indexOf(LAUNCHER_SYSTEM_REGEX) != -1){
+		  	  $('searchBuild_launcherFilteringType_REGEXSYSTEM').checked = 'checked';
+ 		 	  $('searchBuild_launcherFilteringType_REGEXSYSTEM').onchange();
+		  	  $('searchBuild_launcherNameRegex').disabled = true;
+		  } else if($('searchBuild_launcherFilter').value.indexOf(FIELD_FILTER_REGEX) != -1){
+		  	  $('searchBuild_launcherFilteringType_REGEX').checked = 'checked';
+		  	  initializeRegexField('searchBuild_launcherNameRegex', ESCAPED_LAUNCHER_FILTER);
+ 		 	  $('searchBuild_launcherFilteringType_REGEX').onchange();
+		  	  $('searchBuild_launcherNameRegex').disabled = false;
+		  } else if($('searchBuild_launcherFilter').value.indexOf(FIELD_FILTER_ALL) != -1){
+		  	  $('searchBuild_launcherFilteringType_ALL').checked = 'checked';
+		  	  $('searchBuild_launcherFilteringType_ALL').onchange();
+		  }
+		  ]]></script>
+	      <input type="submit" class="submit-button" value="${%Search}" name="Submit" />
+	    </form>
+    
+    
+  </l:main-panel>
+</l:layout>
+</j:jelly>
